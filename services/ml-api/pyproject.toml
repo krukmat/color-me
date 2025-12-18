@@ -1,0 +1,19 @@
+[project]
+name = "color-me-ml-api"
+version = "0.1.0"
+description = "FastAPI pipeline for the Color Me try-on service."
+requires-python = ">=3.10"
+
+[project.dependencies]
+fastapi = "^0.116.2"
+uvicorn = "^0.23.0"
+pydantic = "^2.9.0"
+httpx = "^0.26.2"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "N", "Q", "R"]
+
+[tool.pytest.ini_options]
+testpaths = ["services/ml-api/tests"]
+
