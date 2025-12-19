@@ -1,0 +1,4 @@
+[run]
+omit =
+    app/main.py
+    app/middleware/request_id.py
