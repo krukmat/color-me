@@ -12,6 +12,20 @@ This repo (Express BFF, FastAPI ML API, and React Native Android) powers the mob
 
 Currently `apps/` and `services/` are fleshed out as the architecture evolves. Use this repository to version all work and record every addition in `docs/`.
 
+## Mobile App
+
+### Running on Android Emulator
+```bash
+cd apps/mobile
+npm install
+npm run android
+```
+
+The app will build, install, and launch on the connected emulator/device.
+
+### Screenshots
+![Android Emulator - Color Me App](./docs/assets/emulator-screenshot.png)
+
 ## Commands
 - `make dev`: boots the stack (once `Makefile`s are in place).
 - `make lint`: runs linters repository-wide.
