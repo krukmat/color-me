@@ -22,10 +22,3 @@ Currently `apps/` and `services/` are fleshed out as the architecture evolves. U
 - `scripts/verify.sh`: checks repository health; run after adding dependencies/packages.
 
 If a folder/log/command does not yet exist, document why in `docs/` and update `AGENTS.md`/`PROJECT_PLAN.md` before breaking the workflow.
-
-## Next Steps
-1. Complete Phase 0 (palette, payload, UX copy) — already captured in `docs/`.
-2. Implement the foundational services with `request_id`, OpenAPI contracts, and minimum tests (see `PROJECT_PLAN.md`).
-3. Keep `TICKETS.md` and the CodeX/Claude checklist updated for every PR.
-
-Use this guide as a quick start for new contributors and to maintain consistency until the main packages are complete.
