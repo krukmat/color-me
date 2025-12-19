@@ -18,6 +18,7 @@ import { PALETTE } from "../utils/palette";
 import { useTryOnState } from "../state/useTryOnState";
 import { buildTryOnPayload } from "../utils/request";
 import { performTryOn } from "../services/tryOnService";
+import { openWhatsAppBooking } from "../utils/cta";
 
 const MAX_FILE_MB = 5;
 
@@ -246,6 +247,15 @@ export const CaptureScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={[styles.button, styles.bookingButton]}
+            onPress={openWhatsAppBooking}
+          >
+            <Text style={[styles.buttonText, styles.bookingText]}>
+              📅 Reserva tu cita
+            </Text>
+          </TouchableOpacity>
+
           {tryOnMessage ? (
             <View style={styles.tryOnStatus}>
               <Text
@@ -330,6 +340,12 @@ const styles = StyleSheet.create({
   },
   applyText: {
     color: "#0D1117",
+  },
+  bookingButton: {
+    backgroundColor: "#25D366",
+  },
+  bookingText: {
+    color: "#fff",
   },
   disabled: {
     opacity: 0.4,
