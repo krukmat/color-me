@@ -1,31 +1,31 @@
 # Color Me — Repository Overview
 
 ## Overview
-Este repo (Express BFF, FastAPI ML API y React Native Android) habilita la experiencia mobile-first de **hair color try-on** y más adelante la prótesis capilar. La guía `CLAUDE.md` define los requerimientos (paleta de 10 tonos, slider de intensidad, before/after, share, CTA) y las reglas operativas; sigue el `PROJECT_PLAN.md` / `TICKETS.md` para el roadmap MVP/V1.
+This repo (Express BFF, FastAPI ML API, and React Native Android) powers the mobile-first **hair color try-on** experience and will later support prosthetic hair features. `CLAUDE.md` spells out requirements (10-color palette, intensity slider, before/after view, sharing, CTA), and `PROJECT_PLAN.md` / `TICKETS.md` provide the MVP/V1 roadmap.
 
 ## Structure
-- `apps/mobile/`: React Native Android (pantallas, servicios, utilerías).
-- `services/bff/`: Express TypeScript Gateway (validación, rate-limit, mapping).
-- `services/ml-api/`: FastAPI pipeline (segmentación, recolor, modelo cacheado).
-- `docs/`: especificaciones (paleta, payloads, UX messages, plan/tickets).
-- `scripts/verify.sh`: script central de verificación (ruff/mypy/pytest para ML, npm lint/tests para BFF/mobile cuando existan).
+- `apps/mobile/`: React Native Android (screens, services, utilities).
+- `services/bff/`: Express TypeScript gateway (validation, rate limiting, error mapping).
+- `services/ml-api/`: FastAPI pipeline (segmentation, recolor, cached model loading).
+- `docs/`: Spec docs (palette, payloads, UX copy, plans/tickets).
+- `scripts/verify.sh`: Verification script (ruff/mypy/pytest for ML, npm lint/tests for BFF/mobile where applicable).
 
-Actualmente las carpetas `apps/` y `services/` se definirán conforme se avance con la arquitectura. Usa este repositorio para versionar todo el trabajo y documentar cada adición en `docs/`.
+Currently `apps/` and `services/` are fleshed out as the architecture evolves. Use this repository to version all work and record every addition in `docs/`.
 
 ## Commands
-- `make dev`: levanta el stack de desarrollo (una vez que existan `Makefile`s).
-- `make lint`: corre linters en todo el repo.
-- `make test`: ejecuta las suites de prueba disponibles.
-- `npm run dev`, `npm test`: para `services/bff`.
-- `uvicorn app.main:app --reload`, `pytest`: para `services/ml-api`.
-- `npm run android`: para `apps/mobile`.
-- `scripts/verify.sh`: verifica el estado actual del stack. Úsalo después de agregar paquetes o dependencias.
+- `make dev`: boots the stack (once `Makefile`s are in place).
+- `make lint`: runs linters repository-wide.
+- `make test`: runs available test suites.
+- `npm run dev`, `npm test`: under `services/bff`.
+- `uvicorn app.main:app --reload`, `pytest`: under `services/ml-api`.
+- `npm run android`: under `apps/mobile`.
+- `scripts/verify.sh`: checks repository health; run after adding dependencies/packages.
 
-Si alguna carpeta/log/comando no existe aún, documenta la razón en `docs/` y actualiza `AGENTS.md`/`PROJECT_PLAN.md` antes de romper el flujo.
+If a folder/log/command does not yet exist, document why in `docs/` and update `AGENTS.md`/`PROJECT_PLAN.md` before breaking the workflow.
 
 ## Next Steps
-1. Completar la Fase 0 (paleta, payload, mensajes) — ya registradas en `docs/`.
-2. Implementar los servicios básicos con `request_id`, contrato OpenAPI y pruebas mínimas (ver `PROJECT_PLAN.md`).
-3. Mantener actualizados los tickets de `TICKETS.md` y el checklist de CodeX/Claude en cada PR. 
+1. Complete Phase 0 (palette, payload, UX copy) — already captured in `docs/`.
+2. Implement the foundational services with `request_id`, OpenAPI contracts, and minimum tests (see `PROJECT_PLAN.md`).
+3. Keep `TICKETS.md` and the CodeX/Claude checklist updated for every PR.
 
-Usa esta guía como entrada rápida para nuevos contribuyentes y para mantener coherencia hasta que se completen los paquetes principales.
+Use this guide as a quick start for new contributors and to maintain consistency until the main packages are complete.

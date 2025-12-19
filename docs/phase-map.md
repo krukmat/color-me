@@ -24,17 +24,17 @@ Traceable breakdown of phases (Fxx) with tasks, status, and next actions grounde
 | Propagación de `request_id` y envoltorio de error estándar | ✅ completado | `docs/bff-design.md#4-6` describe middleware, logging y mapping al envelope requerido. |
 | Diseñar suites con Supertest/zod y documentar comandos (`npm run dev`, `npm test`) | ✅ completado | `docs/bff-design.md#7-8` detalla unit/integration tests y scripts (`npm run dev/test`, `scripts/verify.sh`). Implementation pending. |
 
-## F04 — Diseño ML API _(status: in progress — MediaPipe plan documented in `docs/ml-api-design.md`)_
+## F04 — Diseño ML API _(status: in progress — MediaPipe plan documented in `docs/ml-api-design.md`; entrenamiento futuro aplazado)_
 | Task | Status | Notes / Next Steps |
 | --- | --- | --- |
 | Definir validaciones, transformaciones puras y cache de modelos en FastAPI | ✅ completado | Validación en `services/ml-api/app/schemas/tryon.py`, handler en `app/main.py`, pipeline modular (`core/models.py`, `segmenter.py`, `recolor.py`, `postprocess.py`, `pipeline.py`) y tests (`tests/test_pipeline_modules.py`, `tests/test_tryon.py`). |
 | Establecer límites de payload y rechazo temprano | ✅ completado | `app/core/media.py` valida tamaño (≤6MB) y MIME PNG/JPEG, lanza `ApiError`s mapeadas a 413/415; documentación actualizada en `docs/ml-api-design.md#F04.2` y `docs/PAYLOAD_FORMAT.md`. Tests en `tests/test_media_limits.py` y `tests/test_tryon_api.py`. |
 | Planear pruebas `pytest` (recolor/post-process + endpoint) y comando `uvicorn app.main:app --reload` | ✅ completado | `docs/ml-api-design.md#F04.3` define suites (`tests/test_pipeline_modules.py`, `test_media_limits.py`, `test_tryon.py`, `test_tryon_api.py`), ejecución `pytest` y flujo `uvicorn app.main:app --reload`, más próximos fixtures. |
 | Integrar segmentación MediaPipe (modelo real) | ⚡ en progreso | `segmenter.py` incluye ruta MediaPipe con fallback, `ModelCache` preparado; falta conectar modelo real y extracción de máscara multiclass. |
-| Implementar recolor determinista + post-proceso real | ⏳ pendiente | Mezcla HSV/LAB/LUT con `intensity` 0–100, feathering y supresión de bleeding usando máscara real. |
-| Post-proceso anti-bleed (feathering, limpieza) | ⚡ en progreso | `app/core/postprocess.py` y pipeline ahora generan metadata anti-bleed (`mask_hash`, `smoothed_mask_len`). |
+| Implementar recolor determinista + post-proceso real | ⏳ pendiente | Mezcla HSV/LAB/LUT con `intensity` 0–100, feathering y supresión de bleeding usando máscara real (aplazado al retomar MediaPipe real). |
+| Post-proceso anti-bleed (feathering, limpieza) | ⚡ en progreso | `app/core/postprocess.py` y pipeline generan metadata (`mask_hash`, `smoothed_mask_len`); anti-bleed real dependerá de máscara real (aplazado). |
 | Output store con TTL + `GET /images/{id}` | ✅ completado | `app/core/output_store.py` + endpoint `GET /images/{id}` en `app/main.py`; tests en `tests/test_output_store.py` y `tests/test_tryon_api.py`. |
-| E2E con métrica `processing_ms` y logging seguro | ⏳ pendiente | Necesita MediaPipe real + recolor anti-bleed + store final. |
+| E2E con métrica `processing_ms` y logging seguro | ⏳ pendiente | Depende de MediaPipe/recolor reales (aplazado). |
 
 ## F05 — Infra / Docs _(status: pending discovery)_
 | Task | Status | Notes / Next Steps |
