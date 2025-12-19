@@ -1,31 +1,23 @@
 import asyncio
 
-import pytest
-pytest.importorskip("fastapi")
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
-from starlette.responses import JSONResponse, Response
-
+from fastapi.responses import JSONResponse  # type: ignore
 from app.core.errors import ApiError
 from app.main import (
     _collect_validation_errors,
     api_error_handler,
     generic_exception_handler,
+    get_image,
+    try_on,
     validation_exception_handler,
 )
+from app.schemas.tryon import TryOnRequest
+from app.core.output_store import OUTPUT_STORE
 
 
 def _build_request():
-    async def receive():
-        return {"type": "http.request"}
-
-    scope = {
-        "type": "http",
-        "method": "GET",
-        "path": "/",
-        "headers": [],
-    }
-    return Request(scope, receive)
+    return Request(headers={}, base_url="http://testserver/")
 
 
 def test_collect_validation_errors():
@@ -48,6 +40,22 @@ def test_validation_exception_handler():
     assert isinstance(response, JSONResponse)
     assert response.status_code == 400
     assert response.body
+
+
+def test_try_on_and_get_image_roundtrip():
+    payload = TryOnRequest(
+        selfie="data:image/png;base64,ZmFrZS1kYXRh",
+        color="Sunlit Amber",
+        intensity=50,
+        request_id="req-test",
+    )
+    request = _build_request()
+    response = asyncio.run(try_on(payload, request))
+    assert response.image_url.startswith("http://testserver/images/")
+
+    image_id = response.image_url.rsplit("/", 1)[-1]
+    image_response = asyncio.run(get_image(image_id, request))
+    assert image_response.status_code == 200
 
 
 def test_api_error_handler():

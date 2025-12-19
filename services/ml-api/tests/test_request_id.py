@@ -1,9 +1,7 @@
 import asyncio
 
-import pytest
-pytest.importorskip("fastapi")
 from fastapi import Request
-from fastapi.responses import Response
+from fastapi.responses import Response  # type: ignore
 
 from app.middleware.request_id import current_request_id, inject_request_id
 

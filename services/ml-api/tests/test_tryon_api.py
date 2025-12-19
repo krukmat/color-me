@@ -1,8 +1,11 @@
 import base64
 
 import pytest
+import fastapi
 
-pytest.importorskip("fastapi")
+if getattr(fastapi, "__stub__", False):
+    pytest.skip("fastapi stub active", allow_module_level=True)
+
 from fastapi.testclient import TestClient  # type: ignore
 
 from app.main import app
