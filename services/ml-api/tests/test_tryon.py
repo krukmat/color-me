@@ -16,12 +16,14 @@ def test_process_tryon_has_expected_fields():
         intensity=50,
         request_id="req-123",
     )
-    response: TryOnResponse = process_tryon(payload)
+    response: TryOnResponse = process_tryon(payload, base_url="http://localhost")
 
     assert response.request_id == "req-123"
     assert response.color == "Sunlit Amber"
     assert response.processing_ms >= 1
     assert response.details is not None
+    assert response.image_url.startswith("http://localhost/images/")
+    assert "mask_hash" in response.details
 
 
 def test_tryon_request_defaults_intensity():

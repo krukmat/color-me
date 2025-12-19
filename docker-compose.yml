@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  ml-api:
+    build:
+      context: ./services/ml-api
+      dockerfile: Dockerfile
+    environment:
+      - PORT=8000
+    ports:
+      - "8000:8000"
+
+  bff:
+    build:
+      context: ./services/bff
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3000
+      - ML_API_URL=http://ml-api:8000/try-on
+      - ALLOWED_ORIGIN=*
+    ports:
+      - "3000:3000"
+    depends_on:
+      - ml-api

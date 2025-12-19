@@ -36,14 +36,18 @@ def _split_selfie_payload(selfie: str) -> Tuple[str, str]:
     return "image/png", selfie
 
 
-def _estimate_bytes(base64_str: str) -> int:
+def _decode_base64(base64_str: str) -> bytes:
     cleaned = "".join(base64_str.split())
     if not cleaned:
         raise InvalidSelfieDataError()
     try:
-        return len(base64.b64decode(cleaned, validate=True))
+        return base64.b64decode(cleaned, validate=True)
     except Exception as exc:  # pragma: no cover - wrap decode errors
         raise InvalidSelfieDataError() from exc
+
+
+def _estimate_bytes(base64_str: str) -> int:
+    return len(_decode_base64(base64_str))
 
 
 def validate_selfie_payload(selfie: str) -> MediaInfo:
@@ -54,3 +58,13 @@ def validate_selfie_payload(selfie: str) -> MediaInfo:
     if size_bytes > MAX_SELFIE_BYTES:
         raise PayloadTooLargeError(MAX_SELFIE_BYTES)
     return MediaInfo(mime_type=mime_type, size_bytes=size_bytes)
+
+
+def decode_selfie_payload(selfie: str) -> Tuple[str, bytes]:
+    mime_type, data = _split_selfie_payload(selfie)
+    if mime_type not in SUPPORTED_MIME_TYPES:
+        raise UnsupportedMediaTypeError(mime_type)
+    decoded = _decode_base64(data)
+    if len(decoded) > MAX_SELFIE_BYTES:
+        raise PayloadTooLargeError(MAX_SELFIE_BYTES)
+    return mime_type, decoded

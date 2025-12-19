@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from threading import Lock
-from typing import Optional
+from typing import Any, Optional
 
 
 @dataclass
 class SegmenterModel:
     name: str
     version: str
+    backend: Any
 
 
 class ModelCache:
@@ -22,7 +23,9 @@ class ModelCache:
         with cls._lock:
             if cls._segmenter_model is None:
                 cls._segmenter_model = SegmenterModel(
-                    name="mock-segmenter", version="v0.1.0"
+                    name="mediapipe-segmenter",
+                    version="v0.1.0",
+                    backend=None,
                 )
             return cls._segmenter_model
 

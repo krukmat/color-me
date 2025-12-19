@@ -1,11 +1,12 @@
 import logging
 from typing import Any, Dict, List
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from .core.errors import ApiError
 from .schemas.tryon import TryOnRequest, TryOnResponse
+from .core.output_store import OUTPUT_STORE
 from .core.pipeline import process_tryon
 from .middleware.request_id import inject_request_id, current_request_id
 
@@ -20,8 +21,15 @@ app.middleware("http")(inject_request_id)
 async def try_on(payload: TryOnRequest, request: Request) -> TryOnResponse:
     request_id = current_request_id(request)
     logging.info("Processing try-on request %s", request_id)
-    result = process_tryon(payload)
+    base_url = str(request.base_url).rstrip("/")
+    result = process_tryon(payload, base_url=base_url)
     return result
+
+
+@app.get("/images/{image_id}")
+async def get_image(image_id: str, request: Request) -> Response:
+    data, content_type = OUTPUT_STORE.get(image_id)
+    return Response(content=data, media_type=content_type)
 
 
 def _collect_validation_errors(errors: List[Dict[str, Any]]) -> Dict[str, List[str]]:

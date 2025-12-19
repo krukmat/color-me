@@ -39,3 +39,14 @@ def test_try_on_rejects_bad_mime():
     response = client.post("/try-on", json=payload)
     assert response.status_code == 415
     assert response.json()["code"] == "UNSUPPORTED_MEDIA_TYPE"
+
+
+def test_try_on_returns_image_url_and_fetchable_output():
+    payload = _make_payload(base64.b64encode(b"fake").decode())
+    response = client.post("/try-on", json=payload)
+    assert response.status_code == 200
+    image_url = response.json()["image_url"]
+    image_path = image_url.replace("http://testserver", "")
+    fetch = client.get(image_path)
+    assert fetch.status_code == 200
+    assert fetch.headers["content-type"].startswith("image/")

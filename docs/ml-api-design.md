@@ -56,7 +56,7 @@ class TryOnResponse(BaseModel):
 ```
 
 **Notes**
-- Use `HttpUrl` to ensure `image_url` correctness (https/CDN). For `file://` mocks, fallback to `AnyUrl`.
+- Use `AnyUrl` for `image_url` to allow `http://localhost` and test hosts; production can still enforce CDN domains upstream.
 - `processing_ms` uses `PositiveInt`; truncated to integers in pipeline.
 - `details` remains optional but must exclude any raw image data per privacy guardrails.
 
@@ -113,3 +113,51 @@ Implement via `@app.exception_handler(RequestValidationError)` in `app/main.py` 
 - **Fixtures/todo**:
   - Add realistic base64 fixtures under `tests/fixtures/` for regression.
   - Introduce integration tests hitting the live FastAPI app when ML pipeline real implementation lands (compose service).
+
+## F04.7 — Post-process + anti-bleed
+- `app/core/postprocess.py` defines `smooth_mask` (currently a placeholder) and `apply_postprocess`, which featurizes the mask, tracks backend, and returns safe metadata consumed by `/try-on`.
+- Pipeline now passes `SegmentResult` + `RecolorResult` into `apply_postprocess`, ensuring the response includes metadata (`mask_hash`, `smoothed_mask_len`, `backend`) even with stub masks.
+
+## MediaPipe Integration Plan (F04 next)
+Chosen model: **MediaPipe Image Segmenter** with a **multiclass** hair/face/skin model to reduce bleeding into skin/eyes.
+
+### Scope
+- Replace stub segmentation logic in `app/core/segmenter.py` with MediaPipe inference.
+- Keep API contracts, validation, and pipeline orchestration unchanged to minimize changes.
+
+### Implementation Tasks
+1. **Dependencies**
+   - Add MediaPipe Python package (pin version).
+   - Add any required runtime assets or model files if not bundled.
+2. **Model Loading (cache)**
+   - Load the segmenter once in `ModelCache.segmenter()` and reuse per request.
+   - Expose model version via metadata for traceability.
+3. **Segmentation Output**
+   - Use multiclass output to isolate hair mask and exclude face/skin/eyes.
+   - Normalize mask to 0–1 float and pass to recolor.
+4. **Post-process**
+   - Feather edges and suppress bleeding using the face/skin masks as exclusion zones.
+5. **Recolor Integration**
+   - Apply deterministic blending using the hair mask only.
+6. **Testing & Fixtures**
+   - Add small fixture selfies (PNG/JPEG) in `tests/fixtures/`.
+   - Unit tests for mask extraction and post-process.
+   - Integration test: `/try-on` with fixture, validate response fields and non-empty mask metadata.
+
+### Notes
+- If MediaPipe requires GPU or specific runtime backends, keep a CPU fallback path.
+- Keep payload size and MIME validation unchanged.
+
+### Status
+- `segmenter.py` now supports a MediaPipe-backed path when the dependency and model assets are available, with a safe stub fallback for dev/test environments.
+- `ModelCache` now labels the segmenter as `mediapipe-segmenter` and remains cached as a singleton.
+
+## F04.7 — Post-process + anti-bleed
+- `app/core/postprocess.py` now defines `smooth_mask` (placeholder) and `apply_postprocess`, which featurizes the mask, tracks backend, and returns safe metadata used by `/try-on`.
+- Pipeline now feeds `SegmentResult` + `RecolorResult` into `apply_postprocess`, ensuring mask metadata (`mask_hash`, `smoothed_mask_len`, `backend`) is emitted even with stub masks.
+
+## F04.4 — Output Store (TTL) + `GET /images/{id}`
+- Implemented an in-memory TTL store (`app/core/output_store.py`) that keeps only processed outputs.
+- `/try-on` returns `image_url` pointing to `GET /images/{id}` using the request base URL.
+- `GET /images/{id}` returns bytes with proper `content-type`, or `IMAGE_NOT_FOUND` on expiry/missing.
+- Tests: `tests/test_output_store.py` validates TTL behavior; `tests/test_tryon_api.py` fetches the stored output when FastAPI is available.

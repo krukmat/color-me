@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from pydantic import BaseModel, Field, HttpUrl, PositiveInt
+from pydantic import AnyUrl, BaseModel, Field, PositiveInt
 
 try:
     from pydantic import field_validator
@@ -57,7 +57,7 @@ class TryOnRequest(BaseModel):
 
 
 class TryOnResponse(BaseModel):
-    image_url: HttpUrl
+    image_url: AnyUrl
     processing_ms: PositiveInt = Field(
         ..., description="Time spent processing the image in milliseconds."
     )

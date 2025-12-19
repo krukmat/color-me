@@ -8,7 +8,7 @@ def test_model_cache_returns_singleton():
     first = ModelCache.segmenter()
     second = ModelCache.segmenter()
     assert first is second
-    assert first.name == "mock-segmenter"
+    assert first.name in {"mock-segmenter", "mediapipe-segmenter"}
 
 
 def test_segment_and_recolor_flow():
@@ -17,6 +17,7 @@ def test_segment_and_recolor_flow():
     recolor = apply_recolor(segment, color="Sunlit Amber", intensity=65)
 
     assert segment.mask_id
+    assert segment.backend in {"stub", "mediapipe"}
     assert recolor.metadata["segment_mask_id"] == segment.mask_id
     assert recolor.color == "Sunlit Amber"
     assert "sunlit-amber" in recolor.image_url
