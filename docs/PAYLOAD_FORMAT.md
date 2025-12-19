@@ -1,7 +1,7 @@
 # Payload Format — ML API ↔ Mobile
 
 ## Request (mobile → ML API via BFF)
-- `selfie`: base64 or multipart image (<= 5 MB). Mobile should compress/resize before upload; reject > maximum early in BFF.
+- `selfie`: base64 o multipart image (≤ 6 MB). Solo se aceptan `image/png` o `image/jpeg`. Mobile debe comprimir/redimensionar antes de subir; BFF/ML rechazan > límite.
 - `color`: one of the 10 palette names, case-sensitive (e.g., `Rosewood Fade`).
 - `intensity`: integer 0–100; slider emits steps of 5. If outside range, validation returns `400` with `{ code: "INVALID_INTENSITY" }`.
 - `request_id`: propagated from mobile/BFF. Required for tracing; logged but never carries image base64 outside secure storage.
@@ -38,3 +38,7 @@ Example response:
 - Keep the original selfie cached until the new `image_url` is fully loaded; show a loading indicator using `processing_ms` (e.g., `Procesando – {processing_ms} ms estimados`).
 - Before/after slider toggles should use the cached original for “before” and the newly fetched `image_url` for “after”.
 - If a warning arrives in `details`, display a discrete badge (e.g., `Retocado automáticamente`) but do not surface raw metadata or base64 strings.
+- Handle error envelopes consistently:
+  - `PAYLOAD_TOO_LARGE` (413) → pedir una selfie más liviana (<= 6 MB).
+  - `UNSUPPORTED_MEDIA_TYPE` (415) → indicar que solo PNG/JPG están permitidos.
+  - `INVALID_SELFIE` (400) → selfie corrupta o base64 inválida; solicitar nueva captura.

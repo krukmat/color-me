@@ -1,21 +1,25 @@
 import time
-from . import schemas
 
-
-def recolor_image(color: str, intensity: int) -> str:
-    """Mock recolor pipeline that returns a placeholder URL."""
-    time.sleep(0.1)
-    return f"https://cdn.example.com/processed/{color.replace(' ', '-').lower()}-{intensity}.png"
+from app import schemas
+from app.core.media import validate_selfie_payload
+from app.core.postprocess import build_response_metadata
+from app.core.recolor import apply_recolor
+from app.core.segmenter import segment_selfie
 
 
 def process_tryon(payload: schemas.TryOnRequest) -> schemas.TryOnResponse:
+    """Orchestrate segmentation → recolor → response assembly."""
     started = time.perf_counter()
-    image_url = recolor_image(payload.color, payload.intensity)
-    elapsed_ms = int((time.perf_counter() - started) * 1000)
+    media_info = validate_selfie_payload(payload.selfie)
+    segment = segment_selfie(payload.selfie)
+    recolor = apply_recolor(segment, payload.color, payload.intensity)
+    elapsed_ms = max(int((time.perf_counter() - started) * 1000), 1)
+
     return schemas.TryOnResponse(
-        image_url=image_url,
+        image_url=recolor.image_url,
         processing_ms=elapsed_ms,
         request_id=payload.request_id,
-        color=payload.color,
-        details={"intensity": str(payload.intensity)},
+        color=recolor.color,
+        details=build_response_metadata(recolor, elapsed_ms)
+        | {"mime_type": media_info.mime_type},
     )

@@ -24,12 +24,12 @@ Traceable breakdown of phases (Fxx) with tasks, status, and next actions grounde
 | Propagación de `request_id` y envoltorio de error estándar | ✅ completado | `docs/bff-design.md#4-6` describe middleware, logging y mapping al envelope requerido. |
 | Diseñar suites con Supertest/zod y documentar comandos (`npm run dev`, `npm test`) | ✅ completado | `docs/bff-design.md#7-8` detalla unit/integration tests y scripts (`npm run dev/test`, `scripts/verify.sh`). Implementation pending. |
 
-## F04 — Diseño ML API _(status: pending design sign-off)_
+## F04 — Diseño ML API _(status: in progress — validation documented in `docs/ml-api-design.md`)_
 | Task | Status | Notes / Next Steps |
 | --- | --- | --- |
-| Definir validaciones, transformaciones puras y cache de modelos en FastAPI | ⏳ pendiente | Modules: `app/api`, `app/services/segmenter.py`, `app/services/recolor.py`. Validador Pydantic para payload; cargar modelo una vez por proceso. |
-| Establecer límites de payload y rechazo temprano | ⏳ pendiente | Config FastAPI middleware para tamaño máx + validación MIME; documentar respuesta de error. Necesita coordinación con BFF. |
-| Planear pruebas `pytest` (recolor/post-process + endpoint) y comando `uvicorn app.main:app --reload` | ⏳ pendiente | Tests: unit para `apply_recolor`, `blend_mask`; integration hitting `/try-on`. Añadir fixtures reales en `services/ml-api/tests/fixtures`. |
+| Definir validaciones, transformaciones puras y cache de modelos en FastAPI | ✅ completado | Validación en `services/ml-api/app/schemas/tryon.py`, handler en `app/main.py`, pipeline modular (`core/models.py`, `segmenter.py`, `recolor.py`, `postprocess.py`, `pipeline.py`) y tests (`tests/test_pipeline_modules.py`, `tests/test_tryon.py`). |
+| Establecer límites de payload y rechazo temprano | ✅ completado | `app/core/media.py` valida tamaño (≤6MB) y MIME PNG/JPEG, lanza `ApiError`s mapeadas a 413/415; documentación actualizada en `docs/ml-api-design.md#F04.2` y `docs/PAYLOAD_FORMAT.md`. Tests en `tests/test_media_limits.py` y `tests/test_tryon_api.py`. |
+| Planear pruebas `pytest` (recolor/post-process + endpoint) y comando `uvicorn app.main:app --reload` | ✅ completado | `docs/ml-api-design.md#F04.3` define suites (`tests/test_pipeline_modules.py`, `test_media_limits.py`, `test_tryon.py`, `test_tryon_api.py`), ejecución `pytest` y flujo `uvicorn app.main:app --reload`, más próximos fixtures. |
 
 ## F05 — Infra / Docs _(status: pending discovery)_
 | Task | Status | Notes / Next Steps |
