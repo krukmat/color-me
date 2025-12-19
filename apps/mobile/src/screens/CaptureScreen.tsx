@@ -19,6 +19,7 @@ import { useTryOnState } from "../state/useTryOnState";
 import { buildTryOnPayload } from "../utils/request";
 import { performTryOn } from "../services/tryOnService";
 import { openWhatsAppBooking } from "../utils/cta";
+import { shareResult } from "../utils/share";
 
 const MAX_FILE_MB = 5;
 
@@ -96,6 +97,16 @@ export const CaptureScreen: React.FC = () => {
   const onCapture = useCallback(() => {
     processSelection(captureFromCamera);
   }, [processSelection]);
+
+  const onShare = useCallback(async () => {
+    // MOBILE-003: Share processed result
+    await shareResult({
+      imageUrl: result?.imageUrl,
+      colorName: selectedColor.name,
+      intensity,
+      requestId,
+    });
+  }, [result?.imageUrl, selectedColor.name, intensity, requestId]);
 
   const onApplyColor = useCallback(async () => {
     if (!selfie) {
@@ -257,6 +268,20 @@ export const CaptureScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={[
+              styles.button,
+              styles.shareButton,
+              !result && styles.disabled,
+            ]}
+            onPress={onShare}
+            disabled={!result}
+          >
+            <Text style={[styles.buttonText, styles.shareText]}>
+              📤 Compartir resultado
+            </Text>
+          </TouchableOpacity>
+
           {tryOnMessage ? (
             <View style={styles.tryOnStatus}>
               <Text
@@ -346,6 +371,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#25D366",
   },
   bookingText: {
+    color: "#fff",
+  },
+  shareButton: {
+    backgroundColor: "#0A66C2",
+  },
+  shareText: {
     color: "#fff",
   },
   disabled: {
