@@ -2,3 +2,5 @@
 __pycache__/
 docs/internal/
 .DS_Store
+.DS_Store
+*node_modules*/

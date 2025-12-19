@@ -17,7 +17,7 @@ import { SliderControl } from "../components/SliderControl";
 import { PALETTE } from "../utils/palette";
 import { useTryOnState } from "../state/useTryOnState";
 import { buildTryOnPayload } from "../utils/request";
-import { mockTryOnRequest } from "../services/tryOnService";
+import { performTryOn } from "../services/tryOnService";
 
 const MAX_FILE_MB = 5;
 
@@ -113,7 +113,8 @@ export const CaptureScreen: React.FC = () => {
         intensity,
         requestId,
       });
-      const response = await mockTryOnRequest({ payload, selfie });
+      // TASK: MOBILE-001 — Call real HTTP API (performTryOn replaces mock)
+      const response = await performTryOn(payload);
       markSuccess(response);
     } catch (error) {
       const message =

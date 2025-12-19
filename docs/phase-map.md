@@ -10,12 +10,24 @@ Traceable breakdown of phases (Fxx) with tasks, status, and next actions grounde
 | Consolidar convenciones de código (2 espacios, TS estricto, KISS/DRY/SOC, logging limpio) | ✅ completado | Documentado en `AGENTS.md` y `CODEX.md`. Añadir recordatorio en futuros PR templates. |
 | Validar requisitos transversales (`x-request-id`, cache de modelos, límites de payload, error envelope) | ✅ completado | Confirmados en `PROJECT_PLAN.md` y `CODEX.md` (error envelope, propagación `request_id`, payload limits, cache modelo). Preparar middleware y validaciones en fases posteriores. |
 
-## F02 — Diseño Mobile _(status: completed — UI skeleton implemented)_
+## F02 — Diseño Mobile _(status: ⚡ en progreso — UI skeleton OK, integración pendiente)_
+
+**📋 Auditoría realizada 2025-12-19** — Ver `docs/internal/MOBILE_AUDIT_2025-12-19.md` para detalles completos.
+**Puntaje**: 6.2/10 — Arquitectura sólida pero NO deployable a MVP sin correcciones críticas.
+
 | Task | Status | Notes / Next Steps |
 | --- | --- | --- |
-| Definir separación UI/servicios/utilidades y estructura base en `apps/mobile` | ✅ completado | Layout implementado (`components/ColorPalette.tsx`, `components/SliderControl.tsx`, `services/tryOnService.ts`, `utils/palette.ts`, `utils/request.ts`, `state/useTryOnState.ts`). |
-| Diseñar manejo de errores, estados UX y consumo de servicios remotos | ✅ completado | `src/screens/CaptureScreen.tsx` ahora usa `useTryOnState`, request_id y mock service con estados `idle/loading/success/error`. |
-| Planear pruebas de lógica (`__tests__`) y estrategia para `npm run android` | ✅ completado | Nuevos tests (`__tests__/palette.test.ts`, `__tests__/requestSerializer.test.ts`, `__tests__/useTryOnState.test.ts`). `README` mobile mantiene guía para `npm run android`. |
+| Definir separación UI/servicios/utilidades y estructura base en `apps/mobile` | ✅ completado | Layout implementado (`components/ColorPalette.tsx`, `components/SliderControl.tsx`, `services/tryOnService.ts`, `utils/palette.ts`, `utils/request.ts`, `state/useTryOnState.ts`). SoC respetado. |
+| Diseñar manejo de errores, estados UX y consumo de servicios remotos | ⚠️ parcial | Estados OK (`useTryOnState` con idle/loading/success/error). ❌ **BLOCKER**: Solo mock, falta cliente HTTP real (`services/api/client.ts` no existe). |
+| Planear pruebas de lógica (`__tests__`) y estrategia para `npm run android` | ✅ completado | Tests OK (13/13 pasando lógica pura). 1 config issue con `App.test.tsx` (Jest + react-native-image-picker). |
+| **[NUEVO] Implementar cliente HTTP real + conectividad a BFF** | ❌ pendiente | **CRÍTICO**: Crear `services/api/client.ts` con fetch+timeout. Reemplazar `mockTryOnRequest` por `performTryOn` real. Esfuerzo: 2-3h. Ver `docs/internal/MOBILE_AUDIT_2025-12-19.md#anexo-a`. |
+| **[NUEVO] Corregir visualización de resultado procesado** | ❌ pendiente | **CRÍTICO**: `SelfiePreview` ignora `result.imageUrl`, solo muestra overlay CSS. Refactor para recibir `processedUri` y hacer toggle real. Esfuerzo: 2-3h. Ver `docs/internal/MOBILE_AUDIT_2025-12-19.md#anexo-b`. |
+| **[NUEVO] Implementar Share/Export** | ❌ pendiente | **CRÍTICO (MVP)**: Botón compartir con `react-native-share`. Esfuerzo: 1-2h. Ver `docs/internal/MOBILE_AUDIT_2025-12-19.md#anexo-c`. |
+| **[NUEVO] Implementar CTA Reserva (WhatsApp)** | ❌ pendiente | **CRÍTICO (MVP)**: Botón CTA con deeplink a WhatsApp. Esfuerzo: 1h. Ver `docs/internal/MOBILE_AUDIT_2025-12-19.md#anexo-d`. |
+| **[NUEVO] Configuración de entorno (.env)** | ❌ pendiente | **IMPORTANTE**: Crear `.env.example`, instalar `react-native-config`, configurar `BFF_BASE_URL`. Esfuerzo: 1h. Ver `docs/internal/MOBILE_AUDIT_2025-12-19.md#anexo-e`. |
+
+**Gaps identificados**: 4 críticos (blockers MVP) + 4 importantes (deuda técnica). Ver `docs/internal/MOBILE_AUDIT_2025-12-19.md#section-6` para detalles.
+**Plan de implementación**: Ver `docs/internal/MOBILE_IMPLEMENTATION_PLAN.md` (próximo a crear).
 
 ## F03 — Diseño BFF _(status: in progress — design documented in `docs/bff-design.md`)_
 | Task | Status | Notes / Next Steps |

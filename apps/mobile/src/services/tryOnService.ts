@@ -1,6 +1,11 @@
-import type { SelfieData } from "../types/selfie";
 import type { TryOnPayload } from "../utils/request";
 
+/**
+ * Try-On API Response
+ * Maps to ML API response structure
+ *
+ * TASK: MOBILE-001 — Real HTTP Client Integration
+ */
 export interface TryOnResponse {
   imageUrl: string;
   processingMs: number;
@@ -8,26 +13,5 @@ export interface TryOnResponse {
   color: string;
 }
 
-export interface PerformTryOnArgs {
-  payload: TryOnPayload;
-  selfie: SelfieData;
-}
-
-const randomProcessingMs = () => 600 + Math.round(Math.random() * 400);
-
-export const mockTryOnRequest = async ({
-  payload,
-  selfie,
-}: PerformTryOnArgs): Promise<TryOnResponse> => {
-  const processingMs = randomProcessingMs();
-  const imageUrl = selfie.uri;
-
-  await new Promise((resolve) => setTimeout(resolve, processingMs));
-
-  return {
-    imageUrl: imageUrl ?? "",
-    processingMs,
-    requestId: payload.request_id,
-    color: payload.color,
-  };
-};
+// Re-export real implementation from API module
+export { performTryOn } from "./api/tryOnApi";
