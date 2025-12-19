@@ -164,6 +164,7 @@ export const CaptureScreen: React.FC = () => {
             intensity={intensity}
             beforeAfterPosition={beforeAfterPosition}
             processingMs={result?.processingMs}
+            imageUrl={result?.imageUrl}
           />
 
           {isProcessing ? (

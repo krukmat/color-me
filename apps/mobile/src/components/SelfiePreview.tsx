@@ -9,6 +9,7 @@ interface Props {
   intensity: number;
   beforeAfterPosition: number;
   processingMs?: number;
+  imageUrl?: string; // MOBILE-002: Processed image from try-on API
 }
 
 const overlayOpacity = (intensity: number, blend: number): number => {
@@ -21,6 +22,7 @@ export const SelfiePreview: React.FC<Props> = ({
   intensity,
   beforeAfterPosition,
   processingMs,
+  imageUrl,
 }) => {
   if (!selfie?.uri) {
     return (
@@ -35,7 +37,6 @@ export const SelfiePreview: React.FC<Props> = ({
 
   const percentAfter = Math.round(beforeAfterPosition * 100);
   const percentBefore = 100 - percentAfter;
-  const tintOpacity = overlayOpacity(intensity, beforeAfterPosition);
 
   return (
     <View>
@@ -46,12 +47,28 @@ export const SelfiePreview: React.FC<Props> = ({
         imageStyle={styles.imageBorder}
         accessibilityLabel="Selfie seleccionada"
       >
-        <View
-          style={[
-            styles.overlay,
-            { backgroundColor: selectedColor.hex, opacity: tintOpacity },
-          ]}
-        />
+        {/* MOBILE-002: Show processed image if available, controlled by beforeAfterPosition slider */}
+        {imageUrl && (
+          <ImageBackground
+            source={{ uri: imageUrl }}
+            resizeMode="cover"
+            style={[styles.image, { opacity: beforeAfterPosition }]}
+            imageStyle={styles.imageBorder}
+            accessibilityLabel="Resultado aplicado"
+          />
+        )}
+        {/* Fallback: Color tint if no processed image (before API response) */}
+        {!imageUrl && (
+          <View
+            style={[
+              styles.overlay,
+              {
+                backgroundColor: selectedColor.hex,
+                opacity: overlayOpacity(intensity, beforeAfterPosition)
+              },
+            ]}
+          />
+        )}
       </ImageBackground>
       <View style={styles.previewMeta}>
         <Text style={styles.colorName}>{selectedColor.name}</Text>
