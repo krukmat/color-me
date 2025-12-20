@@ -104,7 +104,7 @@ class TestSegmentation:
                 assert result.height > 0
 
 
-class TestSegmentationThread Safety:
+class TestSegmentationThreadSafety:
     """Test thread-safe model loading."""
 
     def test_model_cache_thread_safe(self):

@@ -83,7 +83,7 @@ def postprocess_mask(
             processed,
             config.anti_bleed_threshold,
             255,
-            cv2.THRESH_BINARY
+            cv2.THRESH_TOZERO
         )
 
     return processed
@@ -122,11 +122,9 @@ def apply_postprocess(
         "processing_ms": str(int(recolor_result.intensity or intensity)),
         "mask_hash": segment.mask_id,
         "backend": segment.backend,
-        "postprocess": {
-            "feather_radius": str(feather),
-            "morph_ops": "false",  # Disabled for Phase 1 (simple)
-            "anti_bleed": "false",
-        },
+        "postprocess": (
+            f"feather_radius={feather};morph_ops=false;anti_bleed=false"
+        ),
     }
 
     # Future: Apply postprocess_mask() and composite result

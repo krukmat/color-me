@@ -8,7 +8,7 @@ def test_model_cache_returns_singleton():
     first = ModelCache.segmenter()
     second = ModelCache.segmenter()
     assert first is second
-    assert first.name in {"mock-segmenter", "mediapipe-segmenter"}
+    assert first.name == "hair-segmenter"
 
 
 def test_segment_and_recolor_flow():
