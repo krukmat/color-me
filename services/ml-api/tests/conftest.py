@@ -122,3 +122,38 @@ def _install_fastapi_stub() -> None:
 
 
 _install_fastapi_stub()
+
+
+# Task 1.1: Fixture loaders for test images
+import pytest
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures" / "test_images"
+
+
+@pytest.fixture
+def fixture_image_paths() -> list[Path]:
+    """Return all fixture image paths for batch testing.
+
+    Task: ML_TRAINING_EXECUTION_PLAN.md § 1.1
+    """
+    if not FIXTURES_DIR.exists():
+        pytest.skip("Fixtures directory not found")
+
+    images = sorted(
+        list(FIXTURES_DIR.glob("*.jpg"))
+        + list(FIXTURES_DIR.glob("*.png"))
+        + list(FIXTURES_DIR.glob("*.jpeg"))
+    )
+    if len(images) < 10:
+        pytest.skip(f"Insufficient test fixtures: {len(images)} < 10 images")
+
+    return images
+
+
+@pytest.fixture
+def sample_fixture_path(fixture_image_paths: list[Path]) -> Path:
+    """Return a single fixture image for quick tests.
+
+    Task: ML_TRAINING_EXECUTION_PLAN.md § 1.1
+    """
+    return fixture_image_paths[0]
