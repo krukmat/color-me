@@ -5,7 +5,10 @@ Task: ML_TRAINING_EXECUTION_PLAN.md § 1.4
 import numpy as np
 import pytest
 
-from app.core.postprocess import postprocess_mask, PostprocessConfig
+from app.core import postprocess as postprocess_module
+from app.core.postprocess import PostprocessConfig, apply_postprocess, postprocess_mask
+from app.core.recolor import RecolorResult
+from app.core.segmenter import SegmentResult
 
 
 class TestPostprocessMask:
@@ -132,3 +135,40 @@ class TestPostprocessMask:
         # Result should be binary and similar in size
         assert result.min() in {0, 1}  # Binary after threshold
         assert result.max() in {0, 255}  # Binary after threshold
+
+
+def _dummy_segment():
+    return SegmentResult(mask_id="mask-id", model_version="stub-v0.1.0")
+
+
+def _dummy_recolor(intensity: int) -> RecolorResult:
+    return RecolorResult(
+        image_url="https://cdn.example.com",
+        color="Sunlit Amber",
+        intensity=intensity,
+        metadata={
+            "segment_mask_id": "mask-id",
+            "segment_model_version": "stub-v0.1.0",
+        },
+    )
+
+
+def test_postprocess_mask_returns_original_when_cv2_unavailable(monkeypatch):
+    monkeypatch.setattr(postprocess_module, "CV2_AVAILABLE", False)
+    mask = np.ones((4, 4), dtype=np.uint8)
+    result = postprocess_mask(mask)
+    assert result is mask
+
+
+def test_apply_postprocess_high_intensity_uses_max_feathering():
+    segment = _dummy_segment()
+    recolor = _dummy_recolor(intensity=80)
+    metadata = apply_postprocess(segment, recolor, intensity=80)
+    assert "feather_radius=7" in metadata["postprocess"]
+
+
+def test_apply_postprocess_low_intensity_uses_min_feathering():
+    segment = _dummy_segment()
+    recolor = _dummy_recolor(intensity=20)
+    metadata = apply_postprocess(segment, recolor, intensity=20)
+    assert "feather_radius=3" in metadata["postprocess"]

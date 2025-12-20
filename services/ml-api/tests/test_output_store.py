@@ -20,3 +20,17 @@ def test_output_store_expiry():
     time.sleep(0.01)
     with pytest.raises(ImageNotFoundError):
         store.get(image_id)
+
+
+def test_output_store_get_missing_raises():
+    store = OutputStore(ttl_seconds=10)
+    with pytest.raises(ImageNotFoundError):
+        store.get("missing-id")
+
+
+def test_output_store_clear_removes_entries():
+    store = OutputStore(ttl_seconds=10)
+    image_id = store.save(placeholder_png_bytes(), "image/png")
+    store.clear()
+    with pytest.raises(ImageNotFoundError):
+        store.get(image_id)

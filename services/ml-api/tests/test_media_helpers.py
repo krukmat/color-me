@@ -2,10 +2,12 @@ import base64
 
 import pytest
 
+from app.core.errors import InvalidSelfieDataError
 from app.core.media import (
     MAX_SELFIE_BYTES,
     PayloadTooLargeError,
     UnsupportedMediaTypeError,
+    _decode_base64,
     decode_selfie_payload,
     validate_selfie_payload,
 )
@@ -38,3 +40,30 @@ def test_decode_selfie_payload_invalid_mime():
     payload = f"data:image/gif;base64,{_fixture_base64()}"
     with pytest.raises(UnsupportedMediaTypeError):
         decode_selfie_payload(payload)
+
+
+def test_validate_accepts_raw_base64():
+    selfie = _fixture_base64()
+    info = validate_selfie_payload(selfie)
+    assert info.mime_type == "image/png"
+
+
+def test_validate_rejects_non_base64_chars():
+    with pytest.raises(InvalidSelfieDataError):
+        validate_selfie_payload("invalid$$$")
+
+
+def test_validate_rejects_empty_base64_section():
+    with pytest.raises(InvalidSelfieDataError):
+        validate_selfie_payload("data:image/png;base64,   ")
+
+
+def test_decode_selfie_payload_large_data():
+    big = base64.b64encode(b"a" * (MAX_SELFIE_BYTES + 1)).decode()
+    with pytest.raises(PayloadTooLargeError):
+        decode_selfie_payload(f"data:image/png;base64,{big}")
+
+
+def test_decode_base64_rejects_empty_string():
+    with pytest.raises(InvalidSelfieDataError):
+        _decode_base64("    ")
