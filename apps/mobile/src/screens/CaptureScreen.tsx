@@ -16,17 +16,32 @@ import { ColorPalette } from "../components/ColorPalette";
 import { SliderControl } from "../components/SliderControl";
 import { PALETTE } from "../utils/palette";
 import { useTryOnState } from "../state/useTryOnState";
-import { buildTryOnPayload } from "../utils/request";
-import { performTryOn } from "../services/tryOnService";
 import { openWhatsAppBooking } from "../utils/cta";
-import { shareResult } from "../utils/share";
-
-const MAX_FILE_MB = 5;
-
-const formatBytesToMB = (bytes?: number) => {
-  if (!bytes) return 0;
-  return bytes / (1024 * 1024);
-};
+import {
+  formatBytesToMB,
+  validateSelfieResult,
+  validateSelfieForApply,
+  buildTryOnRequest,
+  formatErrorMessage,
+  buildSharePayload,
+  calculateBeforeAfterPercentage,
+  isApplyButtonDisabled,
+  isShareButtonDisabled,
+  showFileTooLargeAlert,
+  showInvalidSelfieAlert,
+  showErrorAlert,
+  executeTryOn,
+  executeShare,
+} from "./CaptureScreen.utils";
+import {
+  handleSelfieResultCallback,
+  processSelectionCallback,
+  onApplyColorCallback,
+  onShareCallback,
+  generateTryOnMessage,
+} from "./CaptureScreen.callbacks";
+// MOBILE-003: Extracted callbacks to pure functions for better testability
+// MOBILE-004: Use extracted callback logic for improved coverage
 
 export const CaptureScreen: React.FC = () => {
   const { selfie, setSelfie, setProcessing, setError, isProcessing } =
@@ -52,40 +67,22 @@ export const CaptureScreen: React.FC = () => {
 
   const handleSelfieResult = useCallback(
     (result?: Awaited<ReturnType<typeof pickFromLibrary>>) => {
-      if (!result) return;
-      if (formatBytesToMB(result.fileSize) > MAX_FILE_MB) {
-        setError("Tu selfie excede el tamaño permitido.");
-        Alert.alert(
-          "Archivo demasiado grande",
-          "Por favor selecciona una selfie más liviana (<5MB)."
-        );
-        return;
-      }
-      setSelfie(result);
-      resetFlow();
-      setStatus(undefined);
+      // MOBILE-004: Use extracted callback function for testing
+      handleSelfieResultCallback(result, setSelfie, setError, resetFlow, setStatus);
     },
     [setSelfie, setError, resetFlow]
   );
 
   const processSelection = useCallback(
     async (action: () => Promise<ReturnType<typeof pickFromLibrary>>) => {
-      try {
-        setProcessing(true);
-        setStatus("Preparando selfie");
-        const result = await action();
-        handleSelfieResult(result);
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "No pudimos procesar tu selfie.";
-        setError(message);
-        Alert.alert("Error", message);
-      } finally {
-        setProcessing(false);
-        setStatus(undefined);
-      }
+      // MOBILE-004: Use extracted callback function for testing
+      await processSelectionCallback(
+        action,
+        handleSelfieResult,
+        setProcessing,
+        setStatus,
+        setError
+      );
     },
     [handleSelfieResult, setError, setProcessing]
   );
@@ -99,45 +96,25 @@ export const CaptureScreen: React.FC = () => {
   }, [processSelection]);
 
   const onShare = useCallback(async () => {
-    // MOBILE-003: Share processed result
-    await shareResult({
-      imageUrl: result?.imageUrl,
-      colorName: selectedColor.name,
-      intensity,
-      requestId,
-    });
-  }, [result?.imageUrl, selectedColor.name, intensity, requestId]);
+    // MOBILE-004: Use extracted callback function for testing
+    await onShareCallback(result, selectedColor, intensity, buildSharePayload, executeShare);
+  }, [result, selectedColor, intensity]);
 
   const onApplyColor = useCallback(async () => {
-    if (!selfie) {
-      Alert.alert("Selecciona una selfie", "Necesitamos una selfie para aplicar el color.");
-      return;
-    }
-    if (!selfie.base64) {
-      Alert.alert("Selfie inválida", "Necesitamos acceso al base64 para enviar la selfie.");
-      return;
-    }
-    try {
-      markLoading();
-      const payload = buildTryOnPayload({
-        selfie,
-        color: selectedColor.name,
-        intensity,
-        requestId,
-      });
-      // TASK: MOBILE-001 — Call real HTTP API (performTryOn replaces mock)
-      const response = await performTryOn(payload);
-      markSuccess(response);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "No pudimos procesar tu color. Reintenta.";
-      markError({ code: "TRY_ON_ERROR", message, requestId });
-      Alert.alert("No pudimos procesar tu color", message);
-    } finally {
-      regenerateRequestId();
-    }
+    // MOBILE-004: Use extracted callback function for testing
+    await onApplyColorCallback(
+      selfie,
+      selectedColor,
+      intensity,
+      requestId,
+      validateSelfieForApply,
+      buildTryOnRequest,
+      executeTryOn,
+      markLoading,
+      markSuccess,
+      markError,
+      regenerateRequestId
+    );
   }, [
     intensity,
     markError,
@@ -145,24 +122,17 @@ export const CaptureScreen: React.FC = () => {
     markSuccess,
     regenerateRequestId,
     requestId,
-    selectedColor.name,
+    selectedColor,
     selfie,
   ]);
 
   const tryOnMessage = useMemo(() => {
-    if (tryOnStatus === "loading") {
-      return `Procesando tono ${selectedColor.name}...`;
-    }
-    if (tryOnStatus === "error") {
-      return tryOnError?.message ?? "No pudimos procesar tu color.";
-    }
-    if (tryOnStatus === "success" && result?.processingMs) {
-      return `Listo en ${result.processingMs} ms · ID ${result.requestId}`;
-    }
-    return undefined;
-  }, [result, selectedColor.name, tryOnError, tryOnStatus]);
+    // MOBILE-004: Use extracted message generation function for testing
+    return generateTryOnMessage(tryOnStatus, result, selectedColor, tryOnError);
+  }, [result, selectedColor, tryOnError, tryOnStatus]);
 
-  const applyDisabled = !selfie || tryOnStatus === "loading";
+  // MOBILE-003: Use isApplyButtonDisabled from utils for coverage
+  const applyDisabled = isApplyButtonDisabled(selfie, tryOnStatus);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -238,10 +208,8 @@ export const CaptureScreen: React.FC = () => {
               onChange={setBeforeAfterPosition}
               leftLabel="Antes"
               rightLabel="Después"
-              valueFormatter={(value) => {
-                const after = Math.round(value * 100);
-                return `${after}% aplicado`;
-              }}
+              // MOBILE-003: Use calculateBeforeAfterPercentage from utils for coverage
+              valueFormatter={calculateBeforeAfterPercentage}
             />
           </View>
 
@@ -269,13 +237,14 @@ export const CaptureScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
+            // MOBILE-003: Use isShareButtonDisabled from utils for coverage
             style={[
               styles.button,
               styles.shareButton,
-              !result && styles.disabled,
+              isShareButtonDisabled(result) && styles.disabled,
             ]}
             onPress={onShare}
-            disabled={!result}
+            disabled={isShareButtonDisabled(result)}
           >
             <Text style={[styles.buttonText, styles.shareText]}>
               📤 Compartir resultado

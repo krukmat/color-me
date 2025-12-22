@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { clamp, roundToStep } from "../utils/number";
+import { calculateSliderValue, calculatePercent } from "./SliderControl.utils";
 
 interface SliderControlProps {
   label?: string;
@@ -40,10 +40,8 @@ export const SliderControl: React.FC<SliderControlProps> = ({
 
   const handlePosition = useCallback(
     (positionX: number) => {
-      const ratio = clamp(positionX / trackWidth.current, 0, 1);
-      const rawValue = min + ratio * (max - min);
-      const stepped = roundToStep(rawValue, step);
-      onChange(clamp(stepped, min, max));
+      const value = calculateSliderValue(positionX, trackWidth.current, min, max, step);
+      onChange(value);
     },
     [max, min, onChange, step]
   );
@@ -67,7 +65,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
     [handlePosition]
   );
 
-  const percent = ((value - min) / (max - min)) * 100;
+  const percent = calculatePercent(value, min, max);
   const formatted = valueFormatter ? valueFormatter(value) : value.toString();
 
   return (
