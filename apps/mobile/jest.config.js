@@ -3,8 +3,13 @@ module.exports = {
   testEnvironment: 'node',
   testPathIgnorePatterns: [
     '/node_modules/',
+    'node_modules',
     '/build/',
     '/__tests__/setup\\.ts$',
+  ],
+  testMatch: [
+    '**/__tests__/**/*.test.{ts,tsx}',
+    '**/__tests__/**/*.{ts,tsx}',
   ],
   transformIgnorePatterns: [
     'node_modules/(?!(react-native|@react-native|react-native-image-picker)/)',
